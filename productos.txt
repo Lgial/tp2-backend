@@ -1,0 +1,38 @@
+[
+  {
+    "title": "title 1",
+    "price": 100,
+    "thumbnail": "./fireserpent.png",
+    "id": 1
+  },
+  {
+    "title": "title 2",
+    "price": 200,
+    "thumbnail": "./gutfade.png",
+    "id": 2
+  },
+  {
+    "title": "title 4",
+    "price": 400,
+    "thumbnail": "./howl.jpg",
+    "id": 4
+  },
+  {
+    "title": "title 5",
+    "price": 500,
+    "thumbnail": "./gutfade.png",
+    "id": 5
+  },
+  {
+    "title": "title 6",
+    "price": 600,
+    "thumbnail": "./fireserpent.png",
+    "id": 6
+  },
+  {
+    "title": "title 7",
+    "price": 700,
+    "thumbnail": "./gutfade.png",
+    "id": 7
+  }
+]
