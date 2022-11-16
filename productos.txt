@@ -12,15 +12,21 @@
     "id": 2
   },
   {
+    "title": "title 3",
+    "price": 300,
+    "thumbnail": "./howl.png",
+    "id": 3
+  },
+  {
     "title": "title 4",
     "price": 400,
-    "thumbnail": "./howl.jpg",
+    "thumbnail": "./gutfade.png",
     "id": 4
   },
   {
     "title": "title 5",
     "price": 500,
-    "thumbnail": "./gutfade.png",
+    "thumbnail": "./howl.png",
     "id": 5
   },
   {

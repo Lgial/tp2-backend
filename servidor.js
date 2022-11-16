@@ -1,10 +1,7 @@
-// importo el filesystem
+const fs = require("fs")
+const express = require("express")
 
-const fs = require("fs");
-
-
-
-// construyo la clase
+const app = express()
 
 class Contenedor {
     constructor (nombreArchivo){
@@ -12,7 +9,6 @@ class Contenedor {
         this.productos = [];
     
     }
-    
     async read(){
         try{
             let existe = await fs.promises.readFile(this.nombreArchivo, 'utf-8')
@@ -21,9 +17,6 @@ class Contenedor {
             console.log("Error en read" + error)
         }
     }
-
-
-
     getId(){
         const length = this.productos.length
 
@@ -32,47 +25,30 @@ class Contenedor {
         }else{
              return this.productos.length
         }
-      
     }
-
-
     async save(producto){
         const id = this.getId()
   
         this.productos.push({
             ...producto, ...{id : id +1}
         })
-
         try {
             await fs.promises.writeFile(this.nombreArchivo, JSON.stringify(this.productos, null, 2));
         }
         catch (error) {
             console.log("Error en save" + error)      
-            
         }
-    
     }
-    
     async getById(id) {
         const idEncontrado = await this.productos.find((ele) => ele.id === id)
-        try {
-            console.log(idEncontrado  )
-        }
-        catch(error) {
-            console.log ("Error en getById" + error)
-        }
+        return idEncontrado
+       
     }
-
     async getAll() {
-         await this.productos
-         try{
-             console.log(this.productos)
-         }
-         catch(error){
-             console.log("Error en getAll" + error)
-         }
+         const funcGetAll = await this.productos
+         return funcGetAll
+       
      }
-
     async leoAll(){
         const arch = await fs.promises.readFile(this.nombreArchivo, "utf-8")
         try{
@@ -83,7 +59,6 @@ class Contenedor {
             console.log("Error en leoAll" + error)
         }
     }
-
     async deleteById(id){
         let archivoCompleto = await this.leoAll()
         let nuevoArchivo = archivoCompleto.filter(ele => ele.id !== id)
@@ -95,7 +70,6 @@ class Contenedor {
             console.log("Error en deleteById" + error)
         }
     }
-     
     async deleteAll() {
         await fs.promises.unlink("./productos.txt")
             try {
@@ -106,8 +80,8 @@ class Contenedor {
                 console.log("Error en borrar el archivo" + error)
             }
      }
-
 }
+
 const registro = new Contenedor ("./productos.txt")
 
 
@@ -116,16 +90,41 @@ const registro = new Contenedor ("./productos.txt")
  registro.save({"title" : "title 2", "price" : 200, "thumbnail" :"./gutfade.png"})
  registro.save({"title" : "title 3", "price" : 300, "thumbnail" :"./howl.png"})
  registro.save({"title" : "title 4", "price" : 400, "thumbnail" :"./gutfade.png"})
- registro.save({"title" : "title 5", "price" : 500, "thumbnail" :"./howl.jpg"})
- registro.save({"title" : "title 6", "price" : 600, "thumbnail" :"./fireserpent.jpg"})
+ registro.save({"title" : "title 5", "price" : 500, "thumbnail" :"./howl.png"})
+ registro.save({"title" : "title 6", "price" : 600, "thumbnail" :"./fireserpent.png"})
  registro.save({"title" : "title 7", "price" : 700, "thumbnail" :"./gutfade.png"})
 
 
+ app.get("/", (req, res) => {
+    res.send("gialE's")
+})
 
- registro.getById(2)
 
- registro.getAll()
+app.get("/productos", async ( req, res ) => {
+    const todosLosProductos = await registro.getAll()
+    try {
+        res.send(todosLosProductos)
+    }
+    catch {
+        res.send("error en getAll")
+    }
+})
 
- registro.deleteById(3)
 
- registro.deleteAll()
+app.get("/productosRandom", async (req, res) => {
+    const numeroAleatorio = parseInt((Math.random() * 7) + 1)
+    const registroAleatorio = await registro.getById(numeroAleatorio)
+    try {
+        res.send(registroAleatorio)
+    }
+    catch {
+        res.send("registro no encontrado")
+    }
+})
+
+
+const server = app.listen(8080, () => {
+    console.log("Servidor escuchando por el puerto 8080")
+})
+
+server.on("err",error => console.log ("Hubo un error" + error))
