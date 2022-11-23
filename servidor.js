@@ -1,130 +1,84 @@
-const fs = require("fs")
-const express = require("express")
+const express = require('express')
+const { Router } = express
 
 const app = express()
+const productos = []
 
-class Contenedor {
-    constructor (nombreArchivo){
-        this.nombreArchivo = nombreArchivo;
-        this.productos = [];
-    
-    }
-    async read(){
-        try{
-            let existe = await fs.promises.readFile(this.nombreArchivo, 'utf-8')
-            return existe
-        }catch(error){
-            console.log("Error en read" + error)
-        }
-    }
-    getId(){
-        const length = this.productos.length
+app.use(express.json())
+app.use(express.urlencoded({extended: true}))
 
-        if (length === 0){
-            return 0
-        }else{
-             return this.productos.length
-        }
+// app.use('/static', express.static(__dirname + '/public'))
+// app.use('/static', express.static('/public'))
+app.use( express.static('public'))
+// y en la url pongo solo localhost:8080
+// app.use('/', express.static('/public'))
+
+const routerProductos = new Router()
+
+
+///// get
+
+routerProductos.get("/",  ( req, res ) => {
+        res.send(productos)
+})
+
+routerProductos.get('/:id',  (req, res) => {
+    const { id } = req.params
+    const prodEncontrado = productos.find((ele) => ele.id == id)
+    if(!prodEncontrado) {
+        res.json(`Producto ${id} no encontrado`)
+    }else{
+        res.json({ "producto encontrado" : prodEncontrado})
     }
-    async save(producto){
-        const id = this.getId()
-  
-        this.productos.push({
-            ...producto, ...{id : id +1}
+})
+
+///// post
+
+routerProductos.post('/', (req, res) => {
+    const lengthProductos = productos.length
+    const nuevoId = lengthProductos + 1
+    productos.push({
+        ...req.body, ...{id : nuevoId}
+    })
+    res.json({ "nuevo id": nuevoId})
+})
+
+///// put
+
+routerProductos.put('/:id', (req, res) => {
+    const { id } = req.params
+    const  prodNuevo  = req.body
+    const prodEncontrado = productos.find((ele) => ele.id == id)
+    if(!prodEncontrado) {
+        res.json(`Producto ${id} no encontrado`)
+    }else{
+     
+        const prodEliminado = productos.splice(parseInt(id - 1), 1)
+        productos.push({
+            ...req.body, ...{id : id}
         })
-        try {
-            await fs.promises.writeFile(this.nombreArchivo, JSON.stringify(this.productos, null, 2));
-        }
-        catch (error) {
-            console.log("Error en save" + error)      
-        }
+        res.json({ anterior : prodEncontrado, nuevo : prodNuevo})
     }
-    async getById(id) {
-        const idEncontrado = await this.productos.find((ele) => ele.id === id)
-        return idEncontrado
-       
-    }
-    async getAll() {
-         const funcGetAll = await this.productos
-         return funcGetAll
-       
-     }
-    async leoAll(){
-        const arch = await fs.promises.readFile(this.nombreArchivo, "utf-8")
-        try{
-            const archOrigen = JSON.parse(arch)
-            return archOrigen
-        }
-        catch(error){
-            console.log("Error en leoAll" + error)
-        }
-    }
-    async deleteById(id){
-        let archivoCompleto = await this.leoAll()
-        let nuevoArchivo = archivoCompleto.filter(ele => ele.id !== id)
-        await fs.promises.writeFile(this.nombreArchivo, JSON.stringify(nuevoArchivo, null, 2))
-        try{
-            console.log(`"Registro ${id} borrado correctamente"`)
-        }
-        catch(error){
-            console.log("Error en deleteById" + error)
-        }
-    }
-    async deleteAll() {
-        await fs.promises.unlink("./productos.txt")
-            try {
-               
-                console.log ("Archivo eliminado correctamente")
-            }
-            catch(error) {
-                console.log("Error en borrar el archivo" + error)
-            }
-     }
-}
-
-const registro = new Contenedor ("./productos.txt")
-
-
-
- registro.save({"title" : "title 1", "price" : 100, "thumbnail" :"./fireserpent.png"})
- registro.save({"title" : "title 2", "price" : 200, "thumbnail" :"./gutfade.png"})
- registro.save({"title" : "title 3", "price" : 300, "thumbnail" :"./howl.png"})
- registro.save({"title" : "title 4", "price" : 400, "thumbnail" :"./gutfade.png"})
- registro.save({"title" : "title 5", "price" : 500, "thumbnail" :"./howl.png"})
- registro.save({"title" : "title 6", "price" : 600, "thumbnail" :"./fireserpent.png"})
- registro.save({"title" : "title 7", "price" : 700, "thumbnail" :"./gutfade.png"})
-
-
- app.get("/", (req, res) => {
-    res.send("gialE's")
 })
 
+///// delete
 
-app.get("/productos", async ( req, res ) => {
-    const todosLosProductos = await registro.getAll()
-    try {
-        res.send(todosLosProductos)
-    }
-    catch {
-        res.send("error en getAll")
+routerProductos.delete('/:id', (req, res) => {
+    const { id } = req.params
+    const prodEncontrado = productos.find((ele) => ele.id === id)
+    if(!prodEncontrado) {
+        res.json(`Producto ${id} no encontrado`)
+    }else{
+        const prodEliminado = productos.splice(parseInt(id - 1), 1)
+        res.json({ "producto eliminado" : prodEliminado })
     }
 })
 
 
-app.get("/productosRandom", async (req, res) => {
-    const numeroAleatorio = parseInt((Math.random() * 7) + 1)
-    const registroAleatorio = await registro.getById(numeroAleatorio)
-    try {
-        res.send(registroAleatorio)
-    }
-    catch {
-        res.send("registro no encontrado")
-    }
+app.use ("/api/productos/", routerProductos)
+
+const PORT = 8080
+const server = app.listen(PORT, () => {
+    console.log('escuchando en el puerto ' + PORT)
 })
-
-
-const server = app.listen(8080, () => {
-    console.log("Servidor escuchando por el puerto 8080")
-})
-
-server.on("err",error => console.log ("Hubo un error" + error))
+server.on("error", error => console.log(error))
